@@ -72,6 +72,9 @@ resource "aws_s3_object" "index" {
   key          = "index.html"
   source       = "index.html"
   content_type = "text/html"
+
+  # 🔑 force refresh when file changes
+  etag = filemd5("index.html")
 }
 
 # Output website URL
