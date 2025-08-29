@@ -1,13 +1,30 @@
+terraform {
+  backend "s3" {
+    bucket         = "eugen-terraform-state-058264165087"
+    key            = "s3-static-site/terraform.tfstate"
+    region         = "eu-central-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+  }
+}
+
 provider "aws" {
   region = "eu-central-1"
 }
 
-# Create S3 bucket
+# Create S3 bucket for website
 resource "aws_s3_bucket" "website" {
   bucket = "eugen-static-site-demo"
 }
 
-# Disable Block Public Access (so we can attach a public policy)
+# Disable Block Public Access
 resource "aws_s3_bucket_public_access_block" "website" {
   bucket                  = aws_s3_bucket.website.id
   block_public_acls       = false
@@ -29,7 +46,7 @@ resource "aws_s3_bucket_website_configuration" "website" {
   }
 }
 
-# Allow public GET on objects
+# Public read bucket policy
 resource "aws_s3_bucket_policy" "public_read" {
   bucket = aws_s3_bucket.website.id
   policy = <<POLICY
@@ -57,7 +74,7 @@ resource "aws_s3_object" "index" {
   content_type = "text/html"
 }
 
-# Output the website URL
+# Output website URL
 output "website_url" {
   value = aws_s3_bucket_website_configuration.website.website_endpoint
 }
